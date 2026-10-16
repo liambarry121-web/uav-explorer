@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="UAV Explorer">
+  <meta name="description" content="TU Dublin UAV preliminary design simulator: takeoff, cruise, landing, endurance and thrust.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="styles.css">
+  <title>UAV Design Explorer · TU Dublin</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brandmark" aria-hidden="true">✈</span><div><strong>UAV Explorer</strong><span>TU Dublin · 2027</span></div></div>
+    <button id="reset" class="ghost" type="button" title="Reset all sliders to defaults">↺ Reset</button>
+  </header>
+  <main id="screen" class="layout">
+    <section class="view active" id="view-summary" aria-labelledby="heading-summary">
+      <div class="intro"><span class="eyebrow">PRELIMINARY DESIGN MODEL</span><h1 id="heading-summary">Flight performance</h1><p>Move sliders to compare UAV designs. Results update immediately, including takeoff, thrust and endurance checks.</p></div>
+      <div class="tiles" id="metrics"></div>
+      <div class="panel"><div class="panel-head"><h2>Design checks</h2><span class="tiny">Assumed model</span></div><div id="checks-summary"></div></div>
+      <div class="panel"><h2>Flight plan</h2><div id="flight-plan" class="plan-grid"></div></div>
+      <p class="disclaimer">Not an autopilot or a flight-safety assessment. Motor/propeller thrust, CLmax, ground conditions and the “20-metre box” dimensions have not been verified.</p>
+    </section>
+
+    <section class="view" id="view-graphs" aria-labelledby="heading-graphs">
+      <div class="intro"><span class="eyebrow">FLIGHT STAGES</span><h1 id="heading-graphs">Flight graphs</h1><p>Ground roll, climb, cruise and descent. The 15-minute endurance test is separate from the shorter plotted route.</p></div>
+      <div class="segmented" id="chart-select" role="group" aria-label="Select flight graph">
+        <button type="button" data-chart="altitude" class="selected">Altitude</button>
+        <button type="button" data-chart="velocity">Velocity</button>
+        <button type="button" data-chart="forces">Lift / drag</button>
+        <button type="button" data-chart="thrust">Thrust</button>
+        <button type="button" data-chart="coefficients">CL / CD</button>
+        <button type="button" data-chart="reynolds">Reynolds</button>
+      </div>
+      <div class="panel chart-panel"><div class="panel-head"><h2 id="chart-title">Altitude vs time</h2><span class="tiny" id="chart-unit">ft AGL</span></div><canvas id="flight-chart" role="img" aria-label="Flight profile graph" height="300"></canvas><div class="chart-legend" id="chart-legend"></div></div>
+      <div class="stage-key"><span><i class="dot ground"></i> Ground roll</span><span><i class="dot climb"></i> Climb</span><span><i class="dot cruise"></i> Cruise</span><span><i class="dot descent"></i> Descent</span></div>
+      <div class="panel"><h2>Stage timing</h2><div id="stage-details"></div></div>
+    </section>
+
+    <section class="view" id="view-ground" aria-labelledby="heading-ground">
+      <div class="intro"><span class="eyebrow">TAKEOFF PERFORMANCE</span><h1 id="heading-ground">Ground roll</h1><p>Numerically integrated from rest using estimated thrust, drag and rolling resistance. This is not a verified runway calculation.</p></div>
+      <div class="tiles" id="ground-metrics"></div>
+      <div class="panel chart-panel"><div class="panel-head"><h2>Groundspeed vs time</h2><span class="tiny">m/s</span></div><canvas id="ground-speed-chart" role="img" aria-label="Ground speed versus time" height="255"></canvas><div class="chart-legend"><span><i class="legend-line" style="background:#45c6d8"></i> Groundspeed</span><span><i class="legend-line dashed" style="background:#f7b56b"></i> Required airspeed</span></div></div>
+      <div class="panel chart-panel"><div class="panel-head"><h2>Forces vs distance</h2><span class="tiny">N</span></div><canvas id="ground-forces-chart" role="img" aria-label="Ground forces versus distance" height="255"></canvas><div class="chart-legend"><span><i class="legend-line" style="background:#45c6d8"></i> Thrust proxy</span><span><i class="legend-line" style="background:#f7b56b"></i> Drag</span><span><i class="legend-line" style="background:#a8b7e6"></i> Net force</span></div></div>
+    </section>
+
+    <section class="view" id="view-controls" aria-labelledby="heading-controls">
+      <div class="intro"><span class="eyebrow">17 ADJUSTABLE INPUTS</span><h1 id="heading-controls">Design controls</h1><p>Your adjustments are saved on this device. Use Reset to restore the initial example values.</p></div>
+      <div id="slider-groups"></div>
+      <div class="panel actions"><h2>Share your settings</h2><p>Export a JSON file of the input values to send to teammates.</p><button id="export" class="primary" type="button">Export settings</button></div>
+    </section>
+
+    <section class="view" id="view-guidance" aria-labelledby="heading-guidance">
+      <div class="intro"><span class="eyebrow">SIMPLIFIED DESIGN CHECKS</span><h1 id="heading-guidance">Recommendations</h1><p>These are sensitivity suggestions, not evidence that a design will fly safely or meet the official rules.</p></div>
+      <div class="panel"><h2>Suggested adjustments</h2><ol id="recommendations" class="recommendations"></ol></div>
+      <div class="panel"><h2>Project constraints</h2><div class="spec-table">
+        <div><span>Maximum mass</span><strong>10 kg (5 kg water included)</strong></div>
+        <div><span>Endurance target</span><strong>15 min + 20% reserve</strong></div>
+        <div><span>Route distance</span><strong>~4.02 km</strong></div>
+        <div><span>Speed limit</span><strong>40 kn (20.58 m/s)</strong></div>
+        <div><span>Altitude</span><strong>150–200 ft AGL</strong></div>
+        <div><span>Water drop</span><strong>20 ft AGL (model assumption: during descent)</strong></div>
+        <div><span>Launch / landing</span><strong>“20-metre box” (geometry unconfirmed)</strong></div>
+        <div><span>Battery model</span><strong>22.2 V / 6 Ah / 1 kg each, parallel</strong></div>
+      </div></div>
+      <p class="disclaimer">The project brief, battery assumptions and 15-minute requirement have different sources. Verify current rules independently before relying on any design check.</p>
+    </section>
+  </main>
+  <nav class="bottom-nav" aria-label="App sections">
+    <button type="button" data-view="summary" class="selected"><span class="nav-icon">◈</span><span>Summary</span></button>
+    <button type="button" data-view="graphs"><span class="nav-icon">⌁</span><span>Graphs</span></button>
+    <button type="button" data-view="ground"><span class="nav-icon">↗</span><span>Takeoff</span></button>
+    <button type="button" data-view="controls"><span class="nav-icon">☷</span><span>Sliders</span></button>
+    <button type="button" data-view="guidance"><span class="nav-icon">✓</span><span>Advice</span></button>
+  </nav>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
